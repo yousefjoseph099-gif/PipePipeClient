@@ -1,0 +1,48 @@
+name: Build custom debug APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - dev
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      # Check out THIS repo (your PipePipeClient fork, with your changes) into ./PipePipeClient
+      - name: Checkout PipePipeClient (this repo)
+        uses: actions/checkout@v4
+        with:
+          path: PipePipeClient
+
+      # PipePipeClient's settings.gradle expects PipePipeExtractor as a sibling folder
+      # (../PipePipeExtractor). Normally that comes from a git submodule in the umbrella
+      # PipePipe repo; here we just check it out directly at the same commit instead.
+      - name: Checkout PipePipeExtractor (sibling dependency)
+        uses: actions/checkout@v4
+        with:
+          repository: InfinityLoop1308/PipePipeExtractor
+          ref: 7919a1b9935638a1b9149ee556c42040d183b5e3
+          path: PipePipeExtractor
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          java-version: 25
+          distribution: "temurin"
+          cache: gradle
+
+      - name: Build debug APK
+        run: |
+          cd PipePipeClient
+          chmod +x gradlew
+          ./gradlew assembleDebug --stacktrace
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: PipePipe-custom-debug-apk
+          retention-days: 14
+          path: PipePipeClient/app/build/outputs/apk/debug/*.apk
