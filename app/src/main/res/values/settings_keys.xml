@@ -1731,6 +1731,13 @@
     <string name="force_end_on_overtime_key">force_end_on_overtime</string>
     <string name="use_old_search_filter_key">use_old_search_filter</string>
     <string name="main_tabs_position_key">main_tabs_position</string>
+
+    <!-- Custom lock/visibility features -->
+    <string name="hide_recommended_lives_key">hide_recommended_lives</string>
+    <string name="hide_main_search_key">hide_main_search</string>
+    <string name="settings_password_key">settings_password_entry</string>
+    <string name="settings_password_hash_key">settings_password_hash</string>
+    <string name="settings_password_salt_key">settings_password_salt</string>
     <string name="disable_exoplayer_media_codec_async_queueing_key">disable_exoplayer_media_codec_async_queueing_key</string>
     <string name="auto_translated_subtitles_language_key">auto_translated_subtitles_language</string>
     <string-array name="auto_translated_subtitles_language_names">

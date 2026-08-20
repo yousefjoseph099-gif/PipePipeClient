@@ -304,13 +304,21 @@ public class MainActivity extends AppCompatActivity {
         final int currentServiceId = ServiceHelper.getSelectedServiceId(this);
         final StreamingService service = NewPipe.getService(currentServiceId);
 
+        final boolean hideRecommendedLives = PreferenceManager
+                .getDefaultSharedPreferences(this)
+                .getBoolean(getString(R.string.hide_recommended_lives_key), false);
+
         int kioskId = 0;
 
         for (final String ks : service.getKioskList().getAvailableKiosks()) {
-            drawerLayoutBinding.navigation.getMenu()
-                    .add(R.id.menu_tabs_group, kioskId, 0, KioskTranslator
-                            .getTranslatedKioskName(ks, this))
-                    .setIcon(KioskTranslator.getKioskIcon(ks));
+            // kioskId is intentionally incremented for every kiosk, including hidden ones,
+            // so that the ids used here stay in sync with the lookup in tabSelected().
+            if (!(hideRecommendedLives && "Recommended Lives".equals(ks))) {
+                drawerLayoutBinding.navigation.getMenu()
+                        .add(R.id.menu_tabs_group, kioskId, 0, KioskTranslator
+                                .getTranslatedKioskName(ks, this))
+                        .setIcon(KioskTranslator.getKioskIcon(ks));
+            }
             kioskId++;
         }
 

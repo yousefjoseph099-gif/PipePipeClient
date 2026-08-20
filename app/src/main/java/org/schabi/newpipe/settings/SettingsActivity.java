@@ -6,6 +6,8 @@ import android.content.Context;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -15,6 +17,7 @@ import androidx.annotation.IdRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
@@ -101,6 +104,10 @@ public class SettingsActivity extends AppCompatActivity implements
 
         setSupportActionBar(settingsLayoutBinding.settingsToolbarLayout.toolbar);
 
+        if (SettingsPasswordUtil.isPasswordSet(this)) {
+            showSettingsPasswordLock();
+        }
+
         if (restored) {
             // Restore state
             if (this.wasSearchActive) {
@@ -118,6 +125,45 @@ public class SettingsActivity extends AppCompatActivity implements
         if (DeviceUtils.isTv(this)) {
             FocusOverlayView.setupFocusObserver(this);
         }
+    }
+
+    /**
+     * Blocks access to the Settings screen until the correct password is entered.
+     * The dialog cannot be dismissed by tapping outside or pressing back; either the
+     * correct password is entered, or the Settings screen is closed entirely.
+     */
+    private void showSettingsPasswordLock() {
+        final View view = LayoutInflater.from(this)
+                .inflate(R.layout.dialog_settings_password, null);
+        final EditText input = view.findViewById(R.id.settings_password_input);
+
+        final AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle(R.string.settings_password_locked_title)
+                .setMessage(R.string.settings_password_locked_message)
+                .setView(view)
+                .setCancelable(false)
+                .setPositiveButton(R.string.settings_password_unlock, null)
+                .setNegativeButton(R.string.cancel, (d, w) -> finish())
+                .create();
+
+        dialog.setOnKeyListener((d, keyCode, event) -> {
+            if (keyCode == KeyEvent.KEYCODE_BACK) {
+                finish();
+                return true;
+            }
+            return false;
+        });
+
+        dialog.setOnShowListener(shown ->
+                dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+                    if (SettingsPasswordUtil.checkPassword(this, input.getText().toString())) {
+                        dialog.dismiss();
+                    } else {
+                        input.setError(getString(R.string.settings_password_wrong));
+                    }
+                }));
+
+        dialog.show();
     }
 
     @Override

@@ -1051,6 +1051,28 @@
 <string name="use_old_search_filter_summary">Use the old menu-based search filter instead of the new dialog UI</string>
 <string name="main_tabs_position_summary">Move main tab selector to the bottom</string>
 <string name="main_tabs_position_title">Main tabs position</string>
+
+<!-- Custom lock/visibility features -->
+<string name="hide_recommended_lives_title">Hide \"Recommended Lives\" in sidebar</string>
+<string name="hide_recommended_lives_summary">Removes the \"Recommended Lives\" entry from the navigation drawer</string>
+<string name="hide_main_search_title">Hide search button</string>
+<string name="hide_main_search_summary">Removes the search icon from the main page toolbar</string>
+<string name="settings_password_title">Settings password</string>
+<string name="settings_password_summary_on">On – tap to change or remove</string>
+<string name="settings_password_summary_off">Off – tap to require a password for Settings</string>
+<string name="settings_password_hint">Password</string>
+<string name="settings_password_enter_current">Enter current password</string>
+<string name="settings_password_enter_new">Enter new password</string>
+<string name="settings_password_confirm_new">Confirm new password</string>
+<string name="settings_password_wrong">Incorrect password</string>
+<string name="settings_password_mismatch">Passwords did not match, nothing was changed</string>
+<string name="settings_password_empty">Password cannot be empty</string>
+<string name="settings_password_saved">Settings password saved</string>
+<string name="settings_password_removed">Settings password removed</string>
+<string name="settings_password_remove">Remove</string>
+<string name="settings_password_locked_title">Settings locked</string>
+<string name="settings_password_locked_message">Enter the password to open Settings</string>
+<string name="settings_password_unlock">Unlock</string>
 <string name="past_hour">Past hour</string>
 <string name="past_day">Past day</string>
 <string name="past_week">Past week</string>
