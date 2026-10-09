@@ -1,4 +1,4 @@
-name: Build custom release APK
+name: Build custom debug APK
 
 on:
   workflow_dispatch:
@@ -16,8 +16,7 @@ jobs:
         with:
           path: PipePipeClient
 
-      # No `ref:` -> latest main. If this ever mismatches your client,
-      # pin `ref:` to the submodule SHA from the InfinityLoop1308/PipePipe repo.
+      # Pin removed: the old SHA was older than your client code, which caused the compile errors.
       - name: Checkout PipePipeExtractor (sibling dependency)
         uses: actions/checkout@v4
         with:
@@ -32,37 +31,15 @@ jobs:
           distribution: "temurin"
           cache: gradle
 
-      - name: Build release APK
+      - name: Build debug APK
         run: |
           cd PipePipeClient
           chmod +x gradlew
-          ./gradlew assembleRelease --no-configuration-cache --stacktrace
-
-      - name: Sign release APK(s)
-        env:
-          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
-          KS_PASS: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          KEY_PASS: ${{ secrets.KEY_PASSWORD }}
-        run: |
-          BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
-          echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.jks"
-          mkdir -p signed
-          for apk in PipePipeClient/app/build/outputs/apk/release/*.apk; do
-            name=$(basename "$apk" | sed 's/-unsigned//')
-            "$BT/apksigner" sign \
-              --ks "$RUNNER_TEMP/release.jks" \
-              --ks-key-alias "$KEY_ALIAS" \
-              --ks-pass env:KS_PASS \
-              --key-pass env:KEY_PASS \
-              --out "signed/$name" "$apk"
-            "$BT/apksigner" verify "signed/$name"
-          done
-          rm -f "$RUNNER_TEMP/release.jks"
+          ./gradlew assembleDebug --no-configuration-cache --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: PipePipe-custom-release-apk
+          name: PipePipe-custom-debug-apk
           retention-days: 14
-          path: signed/*.apk
+          path: PipePipeClient/app/build/outputs/apk/debug/*.apk
