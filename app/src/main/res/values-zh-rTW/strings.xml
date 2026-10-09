@@ -803,7 +803,7 @@
 <string name="sponsor_promote">成為支持者</string>
 <string name="random_play_order_title">隨機順序</string>
 <string name="random_play_order_summary">在背景播放時自動隨機播放您的本地播放列表</string>
-<string name="update_log">- 暫時停用 SABR 擷取端點，並將擷取端點重設為 DASH (YouTube)\n- 使用替代方案來取得 YouTube Kids 影片的 360p 影片串流，而非拋出錯誤 (YouTube)\n- 修正：部分影片的按讚數與觀看次數解析不正確 (YouTube)\n- 修正：\"頻道無法使用\" 錯誤顯示為祖魯語 (YouTube)\n- 修正：播放清單上傳者的使用者名稱解析不正確 (YouTube)\n- 修正：部分頻道連結無法直接開啟 (YouTube)\n- 修正：頻道影片清單無法正確載入 (NicoNico)\n- 修正：應用程式在特定情況下會閃退\n- 修正：若系統非深色模式，部分對話方塊/選單會忽略深色主題 \n- 修正：SoundCloud 音軌無法載入\n- 修正：若設定語言非英文，手動 SponsorBlock 模式無法正確套用\n- 修正：若訂閱清單過長，背景訂閱重新整理可能會被系統終止\n- 移除未如預期運作的 DNS over HTTPS 選項</string>
+<string name="update_log">### 新功能\n\n- 大幅優化電視控制\n- 新增支援直播畫質選擇\n- 「向下滑動以最小化」手勢現在可在設定中進行配置\n- 優化內容過濾器的刪除互動\n- 新增支援推薦/熱門直播 (NicoNico)\n- 新增支援頻道的直播分頁 (NicoNico)\n\n### 錯誤修復\n\n- 修復「以全螢幕啟動」設定無效的問題\n- 修復無法使用分割畫面模式的問題\n- 修復進入全螢幕模式時字幕會消失的問題\n- 修復內容封鎖未套用於公開播放清單的問題\n- 修復直播暫停時仍持續擷取資料的問題\n- 修復使用 SABR 協定中斷的影片無法恢復播放的問題\n- 修復在特定條件下開始播放時可能發生的崩潰問題\n- 修復在某些情況下播放清單總時長會無限增加的問題\n- 修復在特定條件下刪除觀看紀錄所引起的崩潰問題\n- 修復全新安裝時不喜歡計數器未預設停用的問題\n- 修復在特定條件下發生的下載失敗問題 (Bilibili)\n- 修復推薦直播顯示為空的問題 (Bilibili)</string>
 <string name="speeding_playback_title">按住以加速播放</string>
 <string name="view_on_github">在 GitHub 上查看</string>
 <string name="donation_dialog_title">支持這項計畫</string>
@@ -1058,4 +1058,18 @@
 <string name="subscription_details_update_ongoing">正在擷取頻道詳細資訊…</string>
 <string name="subscription_details_update_complete">頻道詳細資訊已更新</string>
 <string name="subscription_details_update_failed">無法更新頻道詳細資訊</string>
+<string name="channel_is_blocked">此頻道在您的封鎖名單中</string>
+<string name="resize_pinch">捏合</string>
+<string name="pinch_to_zoom_selected">雙指捏合以縮放。</string>
+<string name="rotate_fullscreen_to_video_orientation_title">依影片方向旋轉全螢幕</string>
+<string name="rotate_fullscreen_to_video_orientation_summary">在全螢幕模式下，根據影片將螢幕旋轉為直向或橫向</string>
+<string name="rotation_controls_fullscreen_title">旋轉時自動切換全螢幕</string>
+<string name="rotation_controls_fullscreen_summary">系統自動旋轉開啟時，旋轉到橫向會進入全螢幕，旋轉到直向會退出全螢幕</string>
+<string name="niconico_login_summary">Token 只會在必要時使用。登入頁面可能無法在 WebView 版本過舊的舊型裝置上正常運作。</string>
+<string name="minimize_gesture_control_title">向下滑動以最小化</string>
+<string name="minimize_gesture_control_summary">在播放器上向下滑動即可將其縮小為迷你播放器 — %s</string>
+<string name="minimize_gesture_none_description">停用</string>
+<string name="minimize_gesture_non_fullscreen_description">僅限非全螢幕狀態</string>
+<string name="minimize_gesture_fullscreen_description">全螢幕與非全螢幕狀態 (將停用全螢幕與播放速度滑動手勢)</string>
+<string name="delete_filter_confirm">您要從篩選清單中刪除 \"%s\" 嗎？</string>
 </resources>
