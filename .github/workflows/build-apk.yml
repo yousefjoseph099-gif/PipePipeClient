@@ -1,4 +1,4 @@
-name: Build custom debug APK
+name: Build custom release APK
 
 on:
   workflow_dispatch:
@@ -11,20 +11,18 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      # Check out THIS repo (your PipePipeClient fork, with your changes) into ./PipePipeClient
       - name: Checkout PipePipeClient (this repo)
         uses: actions/checkout@v4
         with:
           path: PipePipeClient
 
-      # PipePipeClient's settings.gradle expects PipePipeExtractor as a sibling folder
-      # (../PipePipeExtractor). Normally that comes from a git submodule in the umbrella
-      # PipePipe repo; here we just check it out directly at the same commit instead.
+      # No `ref:` -> latest main. If this ever mismatches your client,
+      # pin `ref:` to the submodule SHA from the InfinityLoop1308/PipePipe repo.
       - name: Checkout PipePipeExtractor (sibling dependency)
         uses: actions/checkout@v4
         with:
           repository: InfinityLoop1308/PipePipeExtractor
-          ref: 7919a1b9935638a1b9149ee556c42040d183b5e3
+          ref: main
           path: PipePipeExtractor
 
       - name: Set up JDK 25
@@ -34,15 +32,37 @@ jobs:
           distribution: "temurin"
           cache: gradle
 
-      - name: Build debug APK
+      - name: Build release APK
         run: |
           cd PipePipeClient
           chmod +x gradlew
-          ./gradlew assembleDebug --stacktrace
+          ./gradlew assembleRelease --no-configuration-cache --stacktrace
+
+      - name: Sign release APK(s)
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KS_PASS: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASS: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+          echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.jks"
+          mkdir -p signed
+          for apk in PipePipeClient/app/build/outputs/apk/release/*.apk; do
+            name=$(basename "$apk" | sed 's/-unsigned//')
+            "$BT/apksigner" sign \
+              --ks "$RUNNER_TEMP/release.jks" \
+              --ks-key-alias "$KEY_ALIAS" \
+              --ks-pass env:KS_PASS \
+              --key-pass env:KEY_PASS \
+              --out "signed/$name" "$apk"
+            "$BT/apksigner" verify "signed/$name"
+          done
+          rm -f "$RUNNER_TEMP/release.jks"
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: PipePipe-custom-debug-apk
+          name: PipePipe-custom-release-apk
           retention-days: 14
-          path: PipePipeClient/app/build/outputs/apk/debug/*.apk
+          path: signed/*.apk
