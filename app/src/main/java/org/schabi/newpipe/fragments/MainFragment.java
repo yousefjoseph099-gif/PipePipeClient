@@ -158,7 +158,11 @@ public class MainFragment extends BaseFragment
             Log.d(TAG, "onCreateOptionsMenu() called with: "
                     + "menu = [" + menu + "], inflater = [" + inflater + "]");
         }
-        inflater.inflate(R.menu.menu_main_fragment, menu);
+        final boolean hideSearch = prefs.getBoolean(getString(R.string.hide_main_search_key),
+                false);
+        if (!hideSearch) {
+            inflater.inflate(R.menu.menu_main_fragment, menu);
+        }
 
         final ActionBar supportActionBar = activity.getSupportActionBar();
         if (supportActionBar != null) {
