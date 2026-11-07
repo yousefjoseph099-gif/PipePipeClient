@@ -1,0 +1,55 @@
+name: Sync with upstream and rebuild
+
+# Merges new commits from the original PipePipeClient into this fork's dev branch.
+# Your custom changes stay, because this is a merge (never a reset or force-push).
+# If upstream changed the same lines you changed, the merge stops with a clear error
+# and nothing is overwritten.
+
+on:
+  schedule:
+    - cron: '0 3 * * *'   # every day at 03:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout fork (dev)
+        uses: actions/checkout@v4
+        with:
+          ref: dev
+          fetch-depth: 0
+
+      - name: Merge upstream/dev
+        id: merge
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote add upstream https://github.com/InfinityLoop1308/PipePipeClient.git
+          git fetch upstream dev
+
+          if git merge-base --is-ancestor upstream/dev HEAD; then
+            echo "Already up to date."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if git merge --no-edit upstream/dev; then
+            git push origin dev
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            git merge --abort
+            echo "::error::Merge conflict between upstream and your custom changes. Nothing was changed. Ask Claude to resolve it."
+            exit 1
+          fi
+
+      # Pushes made with the built-in token do not start other workflows, so start the build explicitly.
+      - name: Start release build
+        if: steps.merge.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run build-release.yml --ref dev
