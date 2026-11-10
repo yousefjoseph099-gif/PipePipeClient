@@ -1,0 +1,71 @@
+name: Move custom strings into separate files (one-time)
+
+# Why: strings.xml and settings_keys.xml are edited by upstream almost every day, so lines we
+# add inside them are the most likely cause of merge conflicts. This moves OUR lines into two
+# new files that upstream never touches. Safe to run more than once (it does nothing the 2nd time).
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout fork (dev)
+        uses: actions/checkout@v4
+        with:
+          ref: dev
+
+      - name: Move custom resources
+        run: |
+          python3 - <<'PY'
+          import re, pathlib
+
+          res = pathlib.Path("app/src/main/res/values")
+          marker = "<!-- Custom lock/visibility features -->"
+          name_re = r'(?:hide_recommended_lives|hide_main_search|settings_password)[A-Za-z_]*'
+
+          def extract(src, indent):
+              p = res / src
+              text = p.read_text(encoding="utf-8")
+              line_re = re.compile(
+                  r'^[ \t]*<string name="' + name_re + r'">.*</string>[ \t]*\n', re.M)
+              lines = [m.group(0).strip() for m in line_re.finditer(text)]
+              text = line_re.sub("", text)
+              text = re.sub(r'\n[ \t]*' + re.escape(marker) + r'[ \t]*\n', "\n", text)
+              p.write_text(text, encoding="utf-8")
+              return lines
+
+          def write_new(dst, lines):
+              body = "\n".join("    " + l for l in lines)
+              (res / dst).write_text(
+                  '<?xml version="1.0" encoding="utf-8"?>\n<resources>\n    '
+                  + marker + "\n" + body + "\n</resources>\n", encoding="utf-8")
+
+          strings = extract("strings.xml", "")
+          keys = extract("settings_keys.xml", "    ")
+          if strings:
+              write_new("custom_strings.xml", strings)
+          if keys:
+              write_new("custom_keys.xml", keys)
+          print("moved strings:", len(strings), "keys:", len(keys))
+          PY
+
+      - name: Commit and start a build
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "Nothing to move - already done."
+            exit 0
+          fi
+          git commit -m "Move custom strings and keys into separate files"
+          git push origin dev
+          gh workflow run build-release.yml --ref dev
