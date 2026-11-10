@@ -5,6 +5,14 @@ on:
     branches: [dev, main]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
+# If a new build starts while an older one is running, stop the older one.
+concurrency:
+  group: build-release
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -52,9 +60,34 @@ jobs:
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: ./gradlew assembleRelease --stacktrace
 
-      - name: Upload APKs
+      # Only the arm64 APK (almost all phones), and only for 3 days: keeps GitHub storage tiny.
+      - name: Upload APK (temporary copy)
         uses: actions/upload-artifact@v4
         with:
-          name: PipePipe-release-apks
-          path: PipePipeClient/app/build/outputs/apk/release/*.apk
+          name: PipePipe-arm64
+          path: PipePipeClient/app/build/outputs/apk/release/*arm64-v8a*.apk
+          retention-days: 3
           if-no-files-found: error
+
+      # Permanent download link for the newest build. Apps like Obtainium can watch it and
+      # tell you when a new version is ready. Only the 3 newest releases are kept.
+      - name: Publish release
+        working-directory: PipePipeClient
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          APK=$(ls app/build/outputs/apk/release/*arm64-v8a*.apk | head -n 1)
+          TAG="build-${{ github.run_number }}"
+          SHORT=$(git rev-parse --short HEAD)
+          gh release create "$TAG" "$APK" \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "Custom build $TAG" \
+            --notes "arm64-v8a build of commit $SHORT" \
+            --latest
+          gh release list --repo "$GITHUB_REPOSITORY" --limit 100 \
+            --json tagName,createdAt \
+            -q 'map(select(.tagName | startswith("build-"))) | sort_by(.createdAt) | reverse | .[3:] | .[].tagName' \
+            | while read -r old; do
+                gh release delete "$old" --cleanup-tag --yes --repo "$GITHUB_REPOSITORY"
+              done
