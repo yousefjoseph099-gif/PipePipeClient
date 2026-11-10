@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Custom lock/visibility features -->
+    <string name="hide_recommended_lives_key">hide_recommended_lives</string>
+    <string name="hide_main_search_key">hide_main_search</string>
+    <string name="settings_password_key">settings_password_entry</string>
+    <string name="settings_password_hash_key">settings_password_hash</string>
+    <string name="settings_password_salt_key">settings_password_salt</string>
+</resources>
