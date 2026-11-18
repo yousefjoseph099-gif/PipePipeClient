@@ -175,6 +175,8 @@ public final class SabrPlaybackSmokeTest {
         final long requiredMediaMs = 2_000L;
         final AtomicBoolean found = new AtomicBoolean();
         final AtomicReference<String> observed = new AtomicReference<>("");
+        final List<String> responseSeq = new ArrayList<>();
+        final List<String> backoffWaits = new ArrayList<>();
         try {
             for (int attempt = 1; attempt <= 8 && !found.get(); attempt++) {
                 final YoutubeSabrSession.RequestResult result = session.requestOnce(
@@ -201,24 +203,47 @@ public final class SabrPlaybackSmokeTest {
                         });
                 final long backoffMs = Math.max(result.getBackoffMs(),
                         session.getBackoffRemainingMs());
+                long sleptMs = 0;
                 if (!found.get() && backoffMs > 0) {
+                    final long sleepStartMs = SystemClock.elapsedRealtime();
                     SystemClock.sleep(Math.min(backoffMs + 10, 30_000));
+                    sleptMs = SystemClock.elapsedRealtime() - sleepStartMs;
+                    backoffWaits.add(attempt + ":" + backoffMs + "->" + sleptMs + "ms");
                 }
+                responseSeq.add(attempt + ":" + (result.isDeferred() ? "deferred"
+                        : String.valueOf(result.getProtectionStatus()))
+                        + (found.get() ? "+media" : "")
+                        + (sleptMs > 0 ? " backoff=" + backoffMs + "->" + sleptMs + "ms" : ""));
             }
         } catch (final Exception error) {
+            responseSeq.add("error:" + error.getClass().getSimpleName());
+            printSabrAudioProbeResult(streamInfo.getId(), false, responseSeq,
+                    backoffWaits);
             printSabrAudioProbeTrace("failure", session);
             throw error;
         }
 
+        printSabrAudioProbeResult(streamInfo.getId(), found.get(), responseSeq,
+                backoffWaits);
         printSabrAudioProbeTrace("complete", session);
         System.out.println("SABR_AUDIO_PROBE url=" + url
                 + " videoId=" + streamInfo.getId()
                 + " itag=" + audioFormat.getItag()
                 + " observed={" + observed.get() + '}');
         assertTrue("Did not receive more than 2 seconds of SABR audio at/after 65 seconds; "
-                        + "lastSegment={" + observed.get() + "} trace="
+                        + "lastSegment={" + observed.get() + "} seq=" + responseSeq
+                        + " backoffWaits=" + backoffWaits + " trace="
                         + session.getDiagnosticTrace(),
                 found.get());
+    }
+
+    private static void printSabrAudioProbeResult(
+            @Nonnull final String videoId, final boolean pass,
+            @Nonnull final List<String> responseSeq,
+            @Nonnull final List<String> backoffWaits) {
+        System.out.println("SABR_AUDIO_PROBE_RESULT videoId=" + videoId + " pass=" + pass
+                + " backoffs=" + backoffWaits.size() + " backoffWaits=" + backoffWaits
+                + " seq=" + responseSeq);
     }
 
     private static void printSabrAudioProbeTrace(
@@ -1290,7 +1315,7 @@ public final class SabrPlaybackSmokeTest {
             renderersFactory.setEnableDecoderFallback(true);
             final ExoPlayer player = new ExoPlayer.Builder(context, renderersFactory)
                     .setTrackSelector(new DefaultTrackSelector(context))
-                    .setLoadControl(new LoadController())
+                    .setLoadControl(new LoadController(C.TIME_UNSET))
                     .build();
             player.addListener(new Player.Listener() {
                 @Override
@@ -1446,7 +1471,7 @@ public final class SabrPlaybackSmokeTest {
         final CountDownLatch ready = new CountDownLatch(1);
         InstrumentationRegistry.getInstrumentation().runOnMainSync(() -> {
             final ExoPlayer player = new ExoPlayer.Builder(context)
-                    .setLoadControl(new LoadController())
+                    .setLoadControl(new LoadController(C.TIME_UNSET))
                     .build();
             player.addListener(new Player.Listener() {
                 @Override
